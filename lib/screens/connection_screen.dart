@@ -28,7 +28,8 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     if (savedUrl != null) {
       _serverController.text = savedUrl;
     } else {
-      final defaultUrl = dotenv.env["OLLAMA_SERVER_URL"] ?? "http://192.168.1.50:11434";
+      final defaultUrl =
+          dotenv.env["OLLAMA_SERVER_URL"] ?? "http://192.168.1.50:11434";
       _serverController.text = defaultUrl;
     }
   }
@@ -53,7 +54,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     });
 
     if (!isConnected) {
-      _showMessage("Could not connect to Ollama");
+      _showMessage("Could not connect to Local Llama");
       return;
     }
 
@@ -83,7 +84,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Connect to Ollama")),
+      appBar: AppBar(title: const Text("Connect to Local Llama")),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
