@@ -13,7 +13,7 @@ class LocalLlama extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Ollama Home Chat",
+      title: "Local Llama Home Chat",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
