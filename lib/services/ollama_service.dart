@@ -1,4 +1,5 @@
 import "dart:convert";
+import "package:flutter/widgets.dart";
 import "package:http/http.dart" as http;
 
 class OllamaService {
@@ -11,7 +12,7 @@ class OllamaService {
     try {
       final response = await http
           .get(Uri.parse("$baseUrl/api/tags"))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 6));
 
       return response.statusCode == 200;
     } catch (_) {
@@ -19,27 +20,28 @@ class OllamaService {
     }
   }
 
-  Future<String> sendMessage(String message) async {
-    final url = Uri.parse("$baseUrl/api/chat");
+  Future<String> sendMessage(List<Map<String, String>> messages) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse("$baseUrl/api/chat"),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "model": model,
+              "messages": messages,
+              "stream": false,
+            }),
+          )
+          .timeout(const Duration(minutes: 10));
 
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "model": model,
-        "messages": [
-          {"role": "user", "content": message},
-        ],
-        "stream": false,
-      }),
-    );
+      if (response.statusCode != 200) {
+        throw Exception("Server returned status ${response.statusCode}");
+      }
 
-    if (response.statusCode != 200) {
-      throw Exception("Ollama error: ${response.body}");
+      final data = jsonDecode(response.body);
+      return data["message"]?["content"] ?? "No response received.";
+    } catch (e) {
+      throw Exception("Could not get a response from Local Llama.");
     }
-
-    final data = jsonDecode(response.body);
-
-    return data["message"]["content"] ?? "No response received.";
   }
 }

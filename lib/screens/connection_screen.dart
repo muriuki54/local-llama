@@ -1,11 +1,18 @@
 import "package:flutter/material.dart";
-import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "../services/ollama_service.dart";
-import "chat_screen.dart";
+import "../widgets/info_card.dart";
+import "connection_success_screen.dart";
 
 class ConnectionScreen extends StatefulWidget {
-  const ConnectionScreen({super.key});
+  final bool showBackButton;
+  final VoidCallback? onConnected;
+
+  const ConnectionScreen({
+    super.key,
+    this.showBackButton = true,
+    this.onConnected,
+  });
 
   @override
   State<ConnectionScreen> createState() => _ConnectionScreenState();
@@ -13,7 +20,9 @@ class ConnectionScreen extends StatefulWidget {
 
 class _ConnectionScreenState extends State<ConnectionScreen> {
   final TextEditingController _serverController = TextEditingController();
+
   bool _isTesting = false;
+  String? _error;
 
   @override
   void initState() {
@@ -23,27 +32,25 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
 
   Future<void> _loadSavedServer() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedUrl = prefs.getString("ollama_server_url");
 
-    if (savedUrl != null) {
-      _serverController.text = savedUrl;
-    } else {
-      final defaultUrl =
-          dotenv.env["OLLAMA_SERVER_URL"] ?? "http://192.168.1.50:11434";
-      _serverController.text = defaultUrl;
-    }
+    _serverController.text =
+        prefs.getString("local_llama_server_url") ??
+        "http://192.168.1.50:11434";
   }
 
   Future<void> _testConnection() async {
     final serverUrl = _serverController.text.trim();
 
     if (serverUrl.isEmpty) {
-      _showMessage("Enter your Ollama server URL");
+      setState(() {
+        _error = "Enter your Local Llama server URL.";
+      });
       return;
     }
 
     setState(() {
       _isTesting = true;
+      _error = null;
     });
 
     final service = OllamaService(baseUrl: serverUrl);
@@ -54,25 +61,26 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     });
 
     if (!isConnected) {
-      _showMessage("Could not connect to Local Llama");
+      setState(() {
+        _error = "Could not connect to server. Check the URL and try again.";
+      });
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("ollama_server_url", serverUrl);
+    await prefs.setString("local_llama_server_url", serverUrl);
 
     if (!mounted) return;
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ChatScreen(serverUrl: serverUrl)),
+      MaterialPageRoute(
+        builder: (_) => ConnectionSuccessScreen(
+          serverUrl: serverUrl,
+          onStartChat: widget.onConnected,
+        ),
+      ),
     );
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -83,40 +91,131 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const purple = Color(0xFF6C4DFF);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Connect to Local Llama")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Text(
-              "Enter your Ubuntu server Ollama URL.",
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
+      appBar: AppBar(
+        title: const Text("Test Connection"),
+        backgroundColor: purple,
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: widget.showBackButton,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            children: [
+              const SizedBox(height: 32),
 
-            TextField(
-              controller: _serverController,
-              decoration: const InputDecoration(
-                labelText: "Ollama Server URL",
-                hintText: "http://192.168.1.50:11434",
-                border: OutlineInputBorder(),
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  color: purple.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(Icons.pets, size: 42, color: purple),
               ),
-              keyboardType: TextInputType.url,
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _isTesting ? null : _testConnection,
-                child: _isTesting
-                    ? const CircularProgressIndicator()
-                    : const Text("Test Connection"),
+              const Text(
+                "Local Llama",
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Connect to your Ollama server on your home network.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black54, height: 1.4),
+              ),
+
+              const SizedBox(height: 36),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Ollama Server URL",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _serverController,
+                keyboardType: TextInputType.url,
+                decoration: InputDecoration(
+                  hintText: "http://192.168.1.50:11434",
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Example: http://192.168.1.50:11434",
+                  style: TextStyle(color: Colors.black54),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: FilledButton.icon(
+                  onPressed: _isTesting ? null : _testConnection,
+                  icon: _isTesting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.wifi_rounded),
+                  label: Text(
+                    _isTesting ? "Testing..." : "Test Connection",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              if (_error != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade200),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red.shade600),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(_error!)),
+                    ],
+                  ),
+                ),
+
+              if (_error != null) const SizedBox(height: 20),
+
+              const InfoCard(),
+            ],
+          ),
         ),
       ),
     );
