@@ -17,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _serverUrl = "http://192.168.1.50:11434";
+  String _selectedModel = "mistral";
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _serverUrl =
           prefs.getString("local_llama_server_url") ??
           "http://192.168.1.50:11434";
+      _selectedModel = prefs.getString("local_llama_model") ?? "mistral";
     });
   }
 
@@ -107,9 +109,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: const TextStyle(color: Colors.black54),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "Model: mistral",
-                      style: TextStyle(color: Colors.black54),
+                    Text(
+                      "Model: $_selectedModel",
+                      style: const TextStyle(color: Colors.black54),
                     ),
                   ],
                 ),

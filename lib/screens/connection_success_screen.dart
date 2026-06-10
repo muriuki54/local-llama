@@ -5,10 +5,12 @@ import "connection_screen.dart";
 class ConnectionSuccessScreen extends StatelessWidget {
   final String serverUrl;
   final VoidCallback? onStartChat;
+  final String model;
 
   const ConnectionSuccessScreen({
     super.key,
     required this.serverUrl,
+    required this.model,
     this.onStartChat,
   });
 
@@ -74,10 +76,10 @@ class ConnectionSuccessScreen extends StatelessWidget {
                       value: serverUrl,
                     ),
                     const Divider(height: 1),
-                    const _InfoRow(
+                    _InfoRow(
                       icon: Icons.view_in_ar_outlined,
                       title: "Model",
-                      value: "mistral",
+                      value: model,
                     ),
                     const Divider(height: 1),
                     const _InfoRow(
@@ -103,7 +105,8 @@ class ConnectionSuccessScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ChatScreen(serverUrl: serverUrl),
+                          builder: (_) =>
+                              ChatScreen(serverUrl: serverUrl, model: model),
                         ),
                       );
                     }

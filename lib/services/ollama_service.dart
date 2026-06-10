@@ -1,12 +1,12 @@
 import "dart:convert";
-import "package:flutter/widgets.dart";
+import "package:flutter/cupertino.dart";
 import "package:http/http.dart" as http;
 
 class OllamaService {
   final String baseUrl;
   final String model;
 
-  OllamaService({required this.baseUrl, this.model = "mistral"});
+  OllamaService({required this.baseUrl, required this.model});
 
   Future<bool> testConnection() async {
     try {
@@ -22,6 +22,8 @@ class OllamaService {
 
   Future<String> sendMessage(List<Map<String, String>> messages) async {
     try {
+      debugPrint("=== Model: $model ===");
+
       final response = await http
           .post(
             Uri.parse("$baseUrl/api/chat"),

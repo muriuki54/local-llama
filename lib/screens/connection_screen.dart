@@ -21,6 +21,10 @@ class ConnectionScreen extends StatefulWidget {
 class _ConnectionScreenState extends State<ConnectionScreen> {
   final TextEditingController _serverController = TextEditingController();
 
+  String _selectedModel = "mistral";
+
+  final List<String> _models = ["mistral", "llama3.2"];
+
   bool _isTesting = false;
   String? _error;
 
@@ -35,7 +39,11 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
 
     _serverController.text =
         prefs.getString("local_llama_server_url") ??
-        "http://192.168.1.50:11434";
+        "http://192.168.1.253:11434";
+
+    _selectedModel = prefs.getString("local_llama_model") ?? "mistral";
+
+    setState(() {});
   }
 
   Future<void> _testConnection() async {
@@ -53,7 +61,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
       _error = null;
     });
 
-    final service = OllamaService(baseUrl: serverUrl);
+    final service = OllamaService(baseUrl: serverUrl, model: _selectedModel);
     final isConnected = await service.testConnection();
 
     setState(() {
@@ -68,7 +76,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("local_llama_server_url", serverUrl);
+    await prefs.setString("local_llama_model", _selectedModel);
 
     if (!mounted) return;
 
@@ -77,6 +85,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
       MaterialPageRoute(
         builder: (_) => ConnectionSuccessScreen(
           serverUrl: serverUrl,
+          model: _selectedModel,
           onStartChat: widget.onConnected,
         ),
       ),
@@ -111,7 +120,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                 width: 76,
                 height: 76,
                 decoration: BoxDecoration(
-                  color: purple.withOpacity(0.10),
+                  color: purple.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const Icon(Icons.pets, size: 42, color: purple),
@@ -151,7 +160,7 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
                 controller: _serverController,
                 keyboardType: TextInputType.url,
                 decoration: InputDecoration(
-                  hintText: "http://192.168.1.50:11434",
+                  hintText: "http://192.168.1.253:11434",
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -165,11 +174,49 @@ class _ConnectionScreenState extends State<ConnectionScreen> {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "Example: http://192.168.1.50:11434",
+                  "Example: http://192.168.1.253:11434",
                   style: TextStyle(color: Colors.black54),
                 ),
               ),
 
+              // Select model
+              const SizedBox(height: 18),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Select Model",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade800,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              DropdownButtonFormField<String>(
+                value: _selectedModel,
+                items: _models.map((model) {
+                  return DropdownMenuItem(value: model, child: Text(model));
+                }).toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+
+                  setState(() {
+                    _selectedModel = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+
+              // End select model
               const SizedBox(height: 24),
 
               SizedBox(

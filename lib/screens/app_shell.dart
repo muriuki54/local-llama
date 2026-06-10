@@ -16,7 +16,8 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   late int _selectedIndex;
-  String _serverUrl = "http://192.168.1.50:11434";
+  String _serverUrl = "http://192.168.1.253:11434";
+  String _selectedModel = "mistral";
 
   @override
   void initState() {
@@ -31,7 +32,9 @@ class _AppShellState extends State<AppShell> {
     setState(() {
       _serverUrl =
           prefs.getString("local_llama_server_url") ??
-          "http://192.168.1.50:11434";
+          "http://192.168.1.253:11434";
+
+      _selectedModel = prefs.getString("local_llama_model") ?? "mistral";
     });
   }
 
@@ -51,7 +54,11 @@ class _AppShellState extends State<AppShell> {
         onTestConnection: () => _changeTab(1),
       ),
       ConnectionScreen(showBackButton: false, onConnected: () => _changeTab(2)),
-      ChatScreen(serverUrl: _serverUrl, showBackButton: false),
+      ChatScreen(
+        serverUrl: _serverUrl,
+        model: _selectedModel,
+        showBackButton: false,
+      ),
     ];
 
     return Scaffold(

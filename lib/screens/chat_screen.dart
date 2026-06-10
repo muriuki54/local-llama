@@ -5,11 +5,13 @@ import "connection_screen.dart";
 
 class ChatScreen extends StatefulWidget {
   final String serverUrl;
+  final String model;
   final bool showBackButton;
 
   const ChatScreen({
     super.key,
     required this.serverUrl,
+    required this.model,
     this.showBackButton = true,
   });
 
@@ -31,7 +33,10 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
 
-    _ollamaService = OllamaService(baseUrl: widget.serverUrl, model: "mistral");
+    _ollamaService = OllamaService(
+      baseUrl: widget.serverUrl,
+      model: widget.model,
+    );
   }
 
   String _timeNow() {
@@ -128,7 +133,7 @@ class _ChatScreenState extends State<ChatScreen> {
           content: Text(
             "App: Local Llama\n"
             "Server: ${widget.serverUrl}\n"
-            "Model: mistral\n"
+            "Model: ${widget.model}\n"
             "Status: Local network only",
           ),
           actions: [
@@ -201,7 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
           color: const Color(0xFFEDE9FF),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Text("Mistral is thinking..."),
+        child: Text("${widget.model} is thinking..."),
       ),
     );
   }
