@@ -1,25 +1,29 @@
 import "package:flutter/material.dart";
-import "package:flutter_dotenv/flutter_dotenv.dart";
-import "screens/connection_screen.dart";
+import "screens/app_shell.dart";
 
-Future<void> main() async {
-  await dotenv.load();
-  runApp(const LocalLlama());
+void main() {
+  runApp(const LocalLlamaApp());
 }
 
-class LocalLlama extends StatelessWidget {
-  const LocalLlama({super.key});
+class LocalLlamaApp extends StatelessWidget {
+  const LocalLlamaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    const primaryPurple = Color(0xFF6C4DFF);
+
     return MaterialApp(
-      title: "Local Llama Home Chat",
+      title: "Local Llama",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryPurple,
+          primary: primaryPurple,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFFAFAFC),
         useMaterial3: true,
       ),
-      home: const ConnectionScreen(),
+      home: const AppShell(),
     );
   }
 }
