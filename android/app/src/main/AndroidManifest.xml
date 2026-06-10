@@ -2,7 +2,7 @@
     <!-- Allow HTTP communication -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="local_llama"
+        android:label="Local Llama"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
